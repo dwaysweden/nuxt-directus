@@ -1,0 +1,59 @@
+{
+  "name": "@digitalway/nuxt-directus",
+  "version": "1.0.0",
+  "description": "Nuxt module for authentication",
+  "license": "MIT",
+  "type": "module",
+  "author": "Daniel Öhling",
+  "keywords": [
+    "nuxt",
+    "directus",
+    "authentication"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/module.mjs",
+      "require": "./dist/module.cjs"
+    }
+  },
+  "main": "./dist/module.cjs",
+  "types": "./dist/types.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepack": "nuxt-module-build",
+    "dev": "nuxi dev playground --host 127.0.0.1",
+    "dev:build": "nuxi build playground",
+    "dev:prepare": "nuxt-module-build --stub && nuxi prepare playground",
+    "release": "npm run lint && npm run prepack && changelogen --release && npm publish && git push --follow-tags",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@directus/sdk": "^11.0.3",
+    "@nuxt/kit": "^3.7.1",
+    "defu": "^6.1.2",
+    "jwt-decode": "^3.1.2",
+    "nuxt-apollo": "^0.1.2"
+  },
+  "devDependencies": {
+    "@nuxt/module-builder": "^0.5.1",
+    "@nuxt/schema": "^3.7.1",
+    "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "@types/node": "^18.17.14",
+    "@typescript-eslint/parser": "^6.6.0",
+    "changelogen": "^0.5.5",
+    "eslint": "^8.48.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-prettier": "^5.0.0",
+    "nuxt": "^3.7.1",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  },
+  "repository": "https://github.com/dwaysweden/nuxt-directus.git"
+}
