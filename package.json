@@ -1,6 +1,6 @@
 {
   "name": "@digitalway/nuxt-directus",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Nuxt module for authentication",
   "license": "MIT",
   "type": "module",
