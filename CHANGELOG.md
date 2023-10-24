@@ -1,6 +1,19 @@
 # Changelog
 
 
+## v1.0.4
+
+[compare changes](https://github.com/dwaysweden/nuxt-directus/compare/v1.0.2...v1.0.4)
+
+### 🏡 Chore
+
+- **release:** V1.0.2 ([20006b5](https://github.com/dwaysweden/nuxt-directus/commit/20006b5))
+- **release:** V1.0.3 ([1774cab](https://github.com/dwaysweden/nuxt-directus/commit/1774cab))
+
+### ❤️ Contributors
+
+- Daniel Ohling <daniel.ohling@gmail.com>
+
 ## v1.0.3
 
 [compare changes](https://github.com/dwaysweden/nuxt-directus/compare/v1.0.2...v1.0.3)
