@@ -156,7 +156,17 @@ export default function () {
     const token = accessToken.get()
 
     if (token && isTokenExpired(token)) {
-      await refresh()
+      try {
+        // Refresh the token
+        await refresh()
+
+        // Retry the fetch request
+        return getToken()
+      } catch (error) {
+        // console.log('Error refreshing token:', error)
+        // Handle the error
+        // ...
+      }
     }
 
     return accessToken.get()
