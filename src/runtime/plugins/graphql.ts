@@ -16,7 +16,7 @@ export default defineNuxtPlugin({
       const accessToken = await getToken()
 
       args.params = {
-        access_token: accessToken
+        access_token: accessToken || null
       }
     }
   }

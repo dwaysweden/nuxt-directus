@@ -16,32 +16,33 @@ export default defineNuxtPlugin(async () => {
   try {
     const config = useRuntimeConfig().public.directus
 
+    addRouteMiddleware('common', common, { global: true })
+
     addRouteMiddleware('auth', auth, {
       global: config.auth.enableGlobalAuthMiddleware
     })
-
-    addRouteMiddleware('common', common, { global: true })
 
     addRouteMiddleware('guest', guest)
 
     const initialized = useState('auth-initialized', () => false)
 
-    const { loggedIn, authCookies } = useDirectusSession()
+    const { _loggedIn } = useDirectusSession()
 
     if (initialized.value === false) {
       const { path } = useRoute()
-      const { fetchUser } = useDirectusAuth()
-      const { refreshToken, accessToken, refresh } = useDirectusSession()
 
-      if (accessToken.get()) {
+      const { fetchUser } = useDirectusAuth()
+      const { _refreshToken, _accessToken, refresh } = useDirectusSession()
+
+      if (_accessToken.get()) {
         await fetchUser()
       } else {
         const isCallback = path === config.auth.redirect.callback
-        const isLoggedIn = loggedIn.get() === 'true'
+        const isLoggedIn = _loggedIn.get() === 'true'
 
-        if (isCallback || isLoggedIn || refreshToken.get()) {
+        if (isCallback || isLoggedIn || _refreshToken.get()) {
           await refresh()
-          if (accessToken.get()) {
+          if (_accessToken.get()) {
             await fetchUser()
           }
         }
@@ -53,12 +54,11 @@ export default defineNuxtPlugin(async () => {
     const { user } = useDirectusAuth()
 
     if (user.value) {
-      loggedIn.set(true)
+      _loggedIn.set(true)
       const { callHook } = useNuxtApp()
       await callHook('auth:loggedIn', true)
     } else {
-      authCookies.clear()
-      loggedIn.set(false)
+      _loggedIn.set(false)
     }
   } catch (e) {
     // eslint-disable-next-line no-console

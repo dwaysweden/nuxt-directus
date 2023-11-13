@@ -3,7 +3,6 @@ import {
   deleteCookie,
   getCookie,
   setCookie,
-  parseCookies,
   splitCookiesString,
   appendResponseHeader
 } from 'h3'
@@ -19,15 +18,14 @@ import {
 
 export default function () {
   const event = useRequestEvent()
-  const config: any = useRuntimeConfig().public.directus
+  const config = useRuntimeConfig().public.directus
 
   const accessTokenCookieName = config.auth.accessTokenCookieName
   const refreshTokenCookieName = config.auth.refreshTokenCookieName
-  const expiresTokenCookieName = config.auth.expiresTokenCookieName
   const msRefreshBeforeExpires = config.auth.msRefreshBeforeExpires
   const loggedInName = 'logged_in'
 
-  const accessToken = {
+  const _accessToken = {
     get: () =>
       process.server
         ? event.context[accessTokenCookieName] ||
@@ -46,58 +44,21 @@ export default function () {
           secure: true
         }).value = value
       }
+    },
+    clear: () => {
+      if (process.server) {
+        deleteCookie(event, accessTokenCookieName)
+      } else {
+        useCookie(accessTokenCookieName).value = null
+      }
     }
   }
 
-  const refreshToken = {
+  const _refreshToken = {
     get: () => process.server && getCookie(event, refreshTokenCookieName)
   }
 
-  const expires = {
-    get: () =>
-      process.server
-        ? event.context[expiresTokenCookieName] ||
-          getCookie(event, expiresTokenCookieName)
-        : useCookie(expiresTokenCookieName).value,
-    set: (value: number) => {
-      if (process.server) {
-        event.context[expiresTokenCookieName] = value
-        setCookie(event, expiresTokenCookieName, value.toString(), {
-          sameSite: 'lax',
-          secure: true
-        })
-      } else {
-        useCookie(expiresTokenCookieName, {
-          sameSite: 'lax',
-          secure: true
-        }).value = value.toString()
-      }
-    }
-  }
-
-  const authCookies = {
-    clear: () => {
-      if (process.server) {
-        const cookies = parseCookies(event)
-        const authCookie = Object.keys(cookies)
-        for (const cookie of authCookie) {
-          if (cookie.includes('auth')) {
-            deleteCookie(event, cookie)
-          }
-        }
-      } else {
-        const getCookies = document.cookie.split(';').map((e) => e.trim())
-        const cookies = getCookies.map((e) => e.slice(0, e.indexOf('=')))
-        for (const cookie of cookies) {
-          if (cookie.includes('auth')) {
-            useCookie(cookie).value = null
-          }
-        }
-      }
-    }
-  }
-
-  const loggedIn = {
+  const _loggedIn = {
     get: () => process.client && localStorage.getItem(loggedInName),
     set: (value: boolean) =>
       process.client && localStorage.setItem(loggedInName, value.toString())
@@ -134,17 +95,16 @@ export default function () {
           appendResponseHeader(event, 'set-cookie', cookie)
         }
         if (res._data) {
-          accessToken.set(res._data?.data.access_token)
-          expires.set(res._data?.data.expires)
-          loggedIn.set(true)
+          _accessToken.set(res._data?.data.access_token)
+          _loggedIn.set(true)
         }
         isRefreshOn.value = false
         return res
       })
       .catch(async () => {
         isRefreshOn.value = false
-        authCookies.clear()
-        loggedIn.set(false)
+        _accessToken.clear()
+        _loggedIn.set(false)
         user.value = null
         if (process.client) {
           await navigateTo(config.auth.redirect.logout)
@@ -152,24 +112,14 @@ export default function () {
       })
   }
 
-  async function getToken() {
-    const token = accessToken.get()
+  async function getToken(): Promise<string | null | undefined> {
+    const accessToken = _accessToken.get()
 
-    if (token && isTokenExpired(token)) {
-      try {
-        // Refresh the token
-        await refresh()
-
-        // Retry the fetch request
-        return getToken()
-      } catch (error) {
-        // console.log('Error refreshing token:', error)
-        // Handle the error
-        // ...
-      }
+    if (accessToken && isTokenExpired(accessToken)) {
+      await refresh()
     }
 
-    return accessToken.get()
+    return _accessToken.get()
   }
 
   function isTokenExpired(token: string) {
@@ -178,13 +128,5 @@ export default function () {
     return expires < Date.now()
   }
 
-  return {
-    refresh,
-    getToken,
-    accessToken,
-    refreshToken,
-    expires,
-    loggedIn,
-    authCookies
-  }
+  return { refresh, getToken, _accessToken, _refreshToken, _loggedIn }
 }

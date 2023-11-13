@@ -1,7 +1,7 @@
 import { readMe, passwordRequest, passwordReset } from '@directus/sdk'
 import { joinURL, withQuery } from 'ufo'
 import type { DirectusUser } from '@directus/sdk'
-import type { AuthenticationData, PublicConfig } from '../types'
+import type { AuthenticationData } from '../types'
 import {
   useState,
   useRuntimeConfig,
@@ -16,14 +16,14 @@ import {
 import type { Ref } from '#imports'
 
 export default function useDirectusAuth<DirectusSchema extends object>() {
-  const user: Ref<DirectusUser<DirectusSchema> | null> = useState(
+  const user: Ref<Readonly<DirectusUser<DirectusSchema> | null>> = useState(
     'user',
     () => null
   )
 
-  const config: any = useRuntimeConfig().public.directus
+  const config = useRuntimeConfig().public.directus
 
-  const { accessToken, expires, loggedIn, authCookies } = useDirectusSession()
+  const { _accessToken, _loggedIn } = useDirectusSession()
 
   async function login(email: string, password: string, otp?: string) {
     const route = useRoute()
@@ -44,9 +44,8 @@ export default function useDirectusAuth<DirectusSchema extends object>() {
     const returnToPath = route.query.redirect?.toString()
     const redirectTo = returnToPath || config.auth.redirect.home
 
-    accessToken.set(data.access_token)
-    expires.set(data.expires)
-    loggedIn.set(true)
+    _accessToken.set(data.access_token)
+    _loggedIn.set(true)
 
     // A workaround to insure access token cookie is set
     setTimeout(async () => {
@@ -61,13 +60,13 @@ export default function useDirectusAuth<DirectusSchema extends object>() {
 
     await callHook('auth:loggedIn', false)
 
-    await $fetch<AuthenticationData>('/auth/logout', {
+    await $fetch('/auth/logout', {
       baseURL: config.rest.baseUrl,
       method: 'POST',
       credentials: 'include'
     }).finally(async () => {
-      authCookies.clear()
-      loggedIn.set(false)
+      _accessToken.clear()
+      _loggedIn.set(false)
       user.value = null
       clearNuxtData()
       await navigateTo(config.auth.redirect.logout)
