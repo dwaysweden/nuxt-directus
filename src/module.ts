@@ -76,11 +76,6 @@ export default defineNuxtModule<ModuleOptions>({
     const restPlugin = resolve(runtimeDir, './plugins/rest')
     addPlugin(restPlugin, { append: true })
 
-    if (options.auth.enabled) {
-      const authPlugin = resolve(runtimeDir, './plugins/auth')
-      addPlugin(authPlugin, { append: true })
-    }
-
     if (options.graphql.enabled) {
       const graphqlPlugin = resolve(runtimeDir, './plugins/graphql')
       addPlugin(graphqlPlugin, { append: true })
@@ -89,6 +84,11 @@ export default defineNuxtModule<ModuleOptions>({
         httpEndpoint: options.graphql.httpEndpoint,
         wsEndpoint: options.graphql.wsEndpoint
       })
+    }
+
+    if (options.auth.enabled) {
+      const authPlugin = resolve(runtimeDir, './plugins/auth')
+      addPlugin(authPlugin, { append: true })
     }
 
     // Add composables directory
@@ -143,7 +143,8 @@ export default defineNuxtModule<ModuleOptions>({
       'updateUser',
       'updateUsers',
       'uploadFiles',
-      'withToken'
+      'withToken',
+      'aggregate'
     ]
 
     commands.forEach((name) => {

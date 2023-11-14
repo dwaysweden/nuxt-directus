@@ -16,11 +16,11 @@ export default defineNuxtPlugin(async () => {
   try {
     const config = useRuntimeConfig().public.directus
 
-    addRouteMiddleware('common', common, { global: true })
-
     addRouteMiddleware('auth', auth, {
       global: config.auth.enableGlobalAuthMiddleware
     })
+
+    addRouteMiddleware('common', common, { global: true })
 
     addRouteMiddleware('guest', guest)
 
